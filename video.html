@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,87 +7,313 @@
     <title>Swapsheep - Video Upload</title>
     <style>
         :root {
-            --bg-color: #F5F2EB;     
-            --text-main: #2A2A2A;    
-            --accent-rust: #D35436;  
-            --line-color: #1A1A1A;   
+            --bg-color: #F5F2EB;
+            --text-main: #2A2A2A;
+            --accent-rust: #D35436;
+            --line-color: #1A1A1A;
             --card-bg: rgba(255, 255, 255, 0.5);
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+        
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: sans-serif; 
+        }
+        
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 20px; 
             background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 0), radial-gradient(rgba(0,0,0,0.02) 1px, transparent 0);
             background-size: 4px 4px;
             background-position: 0 0, 2px 2px;
         }
-
-        .box {
-            width: 100%;
-            max-width: 360px;
-            padding: 40px 24px;
-            border: 1.5px solid var(--line-color);
-            background: var(--card-bg);
-            text-align: center;
-            border-radius: 4px;
-            box-shadow: 4px 4px 0px var(--line-color);
-        }
-
-        h2 { font-size: 1.6rem; font-weight: 300; letter-spacing: 2px; margin-bottom: 25px; }
-
-        .btn-upload {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            background: var(--line-color);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            letter-spacing: 1px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            transition: background 0.2s;
-        }
-
-        .btn-upload:hover { background: var(--accent-rust); }
         
-        .file-info { margin-bottom: 20px; font-size: 0.9rem; font-weight: 600; color: var(--accent-rust); }
-        .back-link { color: var(--text-muted); text-decoration: underline; font-size: 0.9rem; }
+        .app-container { 
+            width: 100%; 
+            max-width: 400px; 
+            text-align: center; 
+            padding-top: 20px;
+        }
+        
+        /* --- Logo Styles --- */
+        .logo-wrapper { 
+            width: 20vw;
+            max-width: 75px; 
+            min-width: 60px;
+            aspect-ratio: 1 / 1;
+            margin: 0 auto 10px auto;
+        }
+
+        .sheep-logo { width: 100%; height: 100%; }
+        .rust-sun { fill: var(--accent-rust); }
+        .sheep-lines, .arrow-path, .arrow-head { stroke: var(--line-color); stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        .sheep-lines { stroke-width: 3.5; }
+        .arrow-path, .arrow-head { stroke-width: 2.5; }
+
+        .rotating-loop {
+            transform-origin: 100px 100px;
+            animation: spinLoop 12s linear infinite;
+        }
+
+        @keyframes spinLoop {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .brand-title { 
+            font-size: 1.8rem; 
+            font-weight: 300; 
+            letter-spacing: 3px; 
+            margin-bottom: 25px; 
+        }
+        
+        /* --- Drag & Drop Video Upload Box --- */
+        .upload-box {
+            width: 100%; 
+            height: 220px; 
+            background: var(--card-bg);
+            border: 2px dashed var(--line-color); 
+            border-radius: 6px; 
+            padding: 20px;
+            margin-bottom: 25px; 
+            box-shadow: 4px 4px 0px var(--line-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .upload-box.dragover {
+            border-color: var(--accent-rust);
+            background-color: rgba(211, 84, 54, 0.05);
+            box-shadow: 4px 4px 0px var(--accent-rust);
+        }
+
+        /* --- SVG Video Icon Style --- */
+        .upload-icon-svg {
+            width: 46px;
+            height: 46px;
+            stroke: var(--line-color);
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .upload-subtext {
+            font-size: 0.75rem;
+            color: #7A756B;
+        }
+
+        /* Hidden Input */
+        #file-input {
+            display: none;
+        }
+
+        /* Video Preview Style */
+        .preview-vid {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 10px;
+            background: var(--card-bg);
+        }
+
+        /* --- Swap Button --- */
+        .btn-swap { 
+            width: 100%;
+            background: var(--line-color); 
+            color: white; 
+            padding: 16px; 
+            border: 1.5px solid var(--line-color); 
+            cursor: pointer; 
+            font-size: 0.95rem; 
+            font-weight: 600;
+            letter-spacing: 2px;
+            border-radius: 4px; 
+            box-shadow: 3px 3px 0px var(--accent-rust); 
+            transition: all 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-swap:hover { 
+            transform: translate(-2px, -2px); 
+            box-shadow: 5px 5px 0px var(--accent-rust); 
+        }
+
+        .btn-swap:active { 
+            transform: translate(2px, 2px); 
+            box-shadow: 1px 1px 0px var(--accent-rust); 
+        }
+
+        .status-message {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-rust);
+            display: none;
+        }
+
+        .back-dashboard-link {
+            display: inline-block;
+            margin-top: 25px;
+            color: var(--text-main);
+            text-decoration: underline;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-dashboard-link:hover {
+            color: var(--accent-rust);
+        }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>VIDEO UPLOAD</h2>
+    <div class="app-container">
+
+        <!-- Rotating Logo -->
+        <div class="logo-wrapper">
+            <svg class="sheep-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <g class="rotating-loop">
+                    <path class="arrow-path" d="M 100,25 A 75,75 0 0,1 170,120" />
+                    <path class="arrow-path" d="M 100,175 A 75,75 0 0,1 30,80" />
+                    <path class="arrow-head" d="M 165,105 L 170,120 L 155,123" />
+                    <path class="arrow-head" d="M 35,95 L 30,80 L 45,77" />
+                </g>
+                <circle cx="100" cy="100" r="45" class="rust-sun" />
+                <path class="sheep-lines" d="M 80,90 C 80,75 120,75 120,90 C 120,105 95,105 95,115" />
+                <path class="sheep-lines" d="M 95,115 L 110,125 L 120,115" />
+            </svg>
+        </div>
+
+        <h1 class="brand-title">swapsheep / vid</h1>
         
-        <!-- accept="video/*" strictly restricts to video formats -->
-        <input type="file" id="videoInput" accept="video/*" style="display:none">
-        
-        <div class="file-info" id="fileInfo">No video selected</div>
-        
-        <button class="btn-upload" onclick="document.getElementById('videoInput').click()">Select Video</button>
-        
-        <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+        <!-- Interactive Upload / Preview Box -->
+        <div class="upload-box" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <div id="upload-prompt">
+                <!-- Vector SVG Video Camera Icon -->
+                <svg class="upload-icon-svg" viewBox="0 0 24 24">
+                    <path d="M23 7l-7 5 7 5V7z" />
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                </svg>
+                <div class="upload-text">Choose a video</div>
+                <div class="upload-subtext">or drag & drop it here</div>
+            </div>
+            
+            <!-- Live Video Preview Element -->
+            <video id="video-preview" class="preview-vid" muted autoplay loop playsinline></video>
+            <input type="file" id="file-input" accept="video/*">
+        </div>
+
+        <!-- Action Trigger -->
+        <button class="btn-swap" onclick="processVideoSwap()">SWAP VIDEO</button>
+
+        <!-- Status Alert -->
+        <div class="status-message" id="status-text"></div>
+
+        <!-- Bottom Back to Dashboard Link -->
+        <div>
+            <a href="dashboard.html" class="back-dashboard-link">← Back to Dashboard</a>
+        </div>
     </div>
 
     <script>
-        const videoInput = document.getElementById('videoInput');
-        const fileInfo = document.getElementById('fileInfo');
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const previewVid = document.getElementById('video-preview');
+        const uploadPrompt = document.getElementById('upload-prompt');
+        const statusText = document.getElementById('status-text');
 
-        videoInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                const file = e.target.files[0];
-                fileInfo.innerText = `🎥 ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+        // Drag & Drop State styling
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            }, false);
+        });
+
+        // Drop Action
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0 && files[0].type.startsWith('video/')) {
+                fileInput.files = files;
+                showPreview(files[0]);
             }
         });
+
+        // Manual File Selector Change
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                showPreview(this.files[0]);
+            }
+        });
+
+        // Show selected video function
+        function showPreview(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewVid.src = e.target.result;
+                previewVid.style.display = 'block';
+                uploadPrompt.style.display = 'none';
+                
+                dropZone.style.borderStyle = 'solid';
+                statusText.style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // Action Trigger
+        function processVideoSwap() {
+            if (!fileInput.files || fileInput.files.length === 0) {
+                statusText.textContent = "Bhai, pehle koi video toh select karo! 🐑";
+                statusText.style.display = 'block';
+                return;
+            }
+            
+            statusText.textContent = "Swapping your video... 🐑💨";
+            statusText.style.display = 'block';
+
+            setTimeout(() => {
+                alert("Video successfully swapped! 🎉");
+                fileInput.value = '';
+                previewVid.src = '';
+                previewVid.style.display = 'none';
+                uploadPrompt.style.display = 'block';
+                dropZone.style.borderStyle = 'dashed';
+                statusText.style.display = 'none';
+            }, 1500);
+        }
     </script>
 </body>
 </html>
