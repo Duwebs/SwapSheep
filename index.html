@@ -87,21 +87,34 @@
             margin-bottom: 25px;
         }
 
-        /* --- Perfect Sitting Sheep Layer Setup --- */
+        /* --- Clickable Sitting Sheep Layer --- */
         .mid-sheep-wrapper {
             width: 65vw;
             max-width: 250px;
-            margin-bottom: -38px; /* Image ko khinch kar button ke upar lane ke liye */
+            margin-bottom: -38px; 
             display: flex;
             justify-content: center;
             position: relative;
-            z-index: 15; /* Isse pair button ke black border ke upar overlap honge */
+            z-index: 15; 
+            cursor: pointer; /* Pointer cursor dikhane ke liye */
+            -webkit-tap-highlight-color: transparent; /* Mobile click highlight remove karne ke liye */
         }
 
         .mid-sheep-wrapper img {
             width: 100%;
             height: auto;
             display: block;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Smooth pop-up transition */
+        }
+
+        /* Hover karne par sheep halki si badi hogi (looks interactive) */
+        .mid-sheep-wrapper:hover img {
+            transform: scale(1.05); 
+        }
+
+        /* Click karte waqt thoda scale down */
+        .mid-sheep-wrapper:active img {
+            transform: scale(0.98);
         }
 
         /* --- Action Button --- */
@@ -121,7 +134,7 @@
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             -webkit-tap-highlight-color: transparent;
             position: relative;
-            z-index: 10; /* Sheep image se thoda niche taaki perfect blending mile */
+            z-index: 10; 
         }
 
         .btn-start:hover { 
@@ -157,8 +170,8 @@
         <h1 class="brand-title">swapsheep</h1>
         <p class="brand-subtitle">effortless, clean file swapping</p>
         
-        <!-- 3. Sitting Sheep (Sitting on the button) -->
-        <div class="mid-sheep-wrapper">
+        <!-- 3. Clickable Sitting Sheep -->
+        <div class="mid-sheep-wrapper" onclick="location.href='dashboard.html'">
             <img src="https://files.catbox.moe/6hb59s.png" alt="Cute Swapsheep Graphic">
         </div>
 
