@@ -22,22 +22,22 @@
         body { 
             background: var(--bg-color); 
             min-height: 100vh; 
-            min-height: -webkit-fill-available; /* Mobile browsers ke bottom bar issue ke liye */
+            min-height: -webkit-fill-available;
             display: flex; 
             flex-direction: column; 
-            justify-content: center; 
+            justify-content: center;
             align-items: center; 
-            padding: 20px;
-            overflow: hidden;
+            padding: 30px 20px;
+            overflow-x: hidden;
 
-            /* Raw paper texture from your reference image */
+            /* Raw paper texture grid */
             background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 0), 
                               radial-gradient(rgba(0,0,0,0.02) 1px, transparent 0);
             background-size: 4px 4px;
             background-position: 0 0, 2px 2px;
         }
 
-        /* Centered content wrapper for stability across all device widths */
+        /* Central stack container */
         .splash-card {
             width: 100%;
             max-width: 400px;
@@ -47,38 +47,24 @@
             text-align: center;
         }
 
-        /* Fully responsive Logo wrapper */
+        /* Top Minimalist Animated Logo */
         .logo-wrapper { 
-            width: 35vw;
-            max-width: 140px; 
-            min-width: 100px;
+            width: 30vw;
+            max-width: 110px; 
+            min-width: 85px;
             aspect-ratio: 1 / 1;
-            margin-bottom: 24px; 
+            margin-bottom: 20px; 
         }
 
-        .sheep-logo {
-            width: 100%;
-            height: 100%;
-        }
-
-        .rust-sun {
-            fill: var(--accent-rust);
-        }
-
-        .sheep-lines, .arrow-path, .arrow-head {
-            stroke: var(--line-color);
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            fill: none;
-        }
-
+        .sheep-logo { width: 100%; height: 100%; }
+        .rust-sun { fill: var(--accent-rust); }
+        .sheep-lines, .arrow-path, .arrow-head { stroke: var(--line-color); stroke-linecap: round; stroke-linejoin: round; fill: none; }
         .sheep-lines { stroke-width: 3.5; }
         .arrow-path, .arrow-head { stroke-width: 2.5; }
 
-        /* Endless loop rotation matching branding */
         .rotating-loop {
             transform-origin: 100px 100px;
-            animation: spinLoop 10s linear infinite;
+            animation: spinLoop 12s linear infinite;
         }
 
         @keyframes spinLoop {
@@ -86,23 +72,39 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Scalable Typo using clamp() for perfect size on screen sizes */
         .brand-title {
-            font-size: clamp(2rem, 8vw, 2.6rem);
+            font-size: clamp(2.2rem, 8vw, 2.8rem);
             font-weight: 300;
             letter-spacing: 4px;
             color: var(--line-color);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .brand-subtitle {
             font-size: clamp(0.8rem, 3.5vw, 0.95rem);
             color: var(--text-muted);
             letter-spacing: 1px;
-            margin-bottom: 40px;
+            margin-bottom: 25px;
         }
 
-        /* Tactile Minimalist Button with scale animation on click */
+        /* --- Perfect Sitting Sheep Layer Setup --- */
+        .mid-sheep-wrapper {
+            width: 65vw;
+            max-width: 250px;
+            margin-bottom: -38px; /* Image ko khinch kar button ke upar lane ke liye */
+            display: flex;
+            justify-content: center;
+            position: relative;
+            z-index: 15; /* Isse pair button ke black border ke upar overlap honge */
+        }
+
+        .mid-sheep-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* --- Action Button --- */
         .btn-start { 
             width: 85%;
             max-width: 280px;
@@ -117,25 +119,26 @@
             border-radius: 4px; 
             box-shadow: 4px 4px 0px var(--accent-rust); 
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            -webkit-tap-highlight-color: transparent; /* Mobile tap blue shadow remover */
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            z-index: 10; /* Sheep image se thoda niche taaki perfect blending mile */
         }
 
-        /* Desktop hovers and Mobile touch feedback */
-        .btn-start:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0px var(--accent-rust);
+        .btn-start:hover { 
+            transform: translate(-2px, -2px); 
+            box-shadow: 6px 6px 0px var(--accent-rust); 
         }
-
-        .btn-start:active {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0px var(--accent-rust);
+        
+        .btn-start:active { 
+            transform: translate(2px, 2px); 
+            box-shadow: 1px 1px 0px var(--accent-rust); 
         }
     </style>
 </head>
 <body>
 
     <div class="splash-card">
-        <!-- Upgraded: Minimalist Integrated Animated Sheep Logo -->
+        <!-- 1. Top Rotating Logo -->
         <div class="logo-wrapper">
             <svg class="sheep-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                 <g class="rotating-loop">
@@ -150,9 +153,16 @@
             </svg>
         </div>
 
+        <!-- 2. Brand Identity -->
         <h1 class="brand-title">swapsheep</h1>
         <p class="brand-subtitle">effortless, clean file swapping</p>
         
+        <!-- 3. Sitting Sheep (Sitting on the button) -->
+        <div class="mid-sheep-wrapper">
+            <img src="https://files.catbox.moe/6hb59s.png" alt="Cute Swapsheep Graphic">
+        </div>
+
+        <!-- 4. Main Trigger Button -->
         <button class="btn-start" onclick="location.href='dashboard.html'">GET STARTED</button>
     </div>
 
