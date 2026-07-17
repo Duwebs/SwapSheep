@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Swapsheep - Image</title>
+    <style>
+        body { background: #F5F2EB; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
+        .box { width: 300px; padding: 40px; border: 2px solid #1A1A1A; background: white; text-align: center; box-shadow: 5px 5px 0px #1A1A1A; }
+        .btn-upload { display: block; width: 100%; padding: 15px; margin: 20px 0; background: #D35436; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>IMAGE UPLOAD</h2>
+        <!-- Is accept="image/*" ki wajah se sirf images dikhengi -->
+        <input type="file" id="fileInput" accept="image/*" style="display:none">
+        
+        <button class="btn-upload" onclick="document.getElementById('fileInput').click()">Select Image</button>
+        
+        <a href="dashboard.html" style="color: #666;">← Back to Dashboard</a>
+    </div>
+</body>
+</html>
