@@ -39,7 +39,7 @@
             z-index: 2; /* Content sheep ke upar dikhega */
         }
 
-        /* --- New: Top Icons Styles --- */
+        /* --- Top Icons Styles --- */
         .top-media-icons {
             display: flex;
             justify-content: space-between;
@@ -50,9 +50,31 @@
         }
 
         .top-icon-img {
-            width: 75px; /* Icons ka size yahan se chota-bada kar sakte ho */
+            width: 85px; /* Visual balance ke liye size thoda bada (15-20%) kiya hai */
             height: auto;
             object-fit: contain;
+            cursor: pointer;
+            /* Smooth transitions aur halka sa bouncy effect animation ke liye */
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+
+        /* --- New: Har icon ko alag natural paper-cut tilt diya hai --- */
+        .top-media-icons img:nth-child(1) {
+            transform: rotate(-3deg); /* Image icon left tilt */
+        }
+        
+        .top-media-icons img:nth-child(2) {
+            transform: rotate(2.5deg); /* Video icon right tilt */
+        }
+        
+        .top-media-icons img:nth-child(3) {
+            transform: rotate(-1.5deg); /* Audio icon halka left tilt */
+        }
+
+        /* --- New: Hover ya Click (Active) karne par ekdum seedha aur bada ho jaye --- */
+        .top-media-icons img:hover,
+        .top-media-icons img:active {
+            transform: rotate(0deg) scale(1.12); /* Seedha hokar halka sa pop-out hoga */
         }
         
         /* --- Logo Styles --- */
@@ -128,30 +150,25 @@
             transform: translateY(-2px); 
         }
 
-        /* --- New: Bottom Corner Sheep Styles --- */
+        /* --- Bottom Corner Sheep Styles (Bilkul safe hai!) --- */
         .bottom-mascot {
             position: fixed;
             bottom: 0;
             right: 0;
-            width: 120px; /* Sheep ka size, mobile ke hisab se perfect hai */
+            width: 120px; 
             height: auto;
-            z-index: 1; /* Background me peeking effect ke liye */
-            pointer-events: none; /* Taaki sheep par click karne se koi button block na ho */
+            z-index: 1; 
+            pointer-events: none; 
         }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <!-- 💡 [PLACEHOLDER 1]: Uper waale teeno image, video aur audio icons yahan hain -->
+        <!-- Uper waale teeno image, video aur audio icons yahan hain -->
         <div class="top-media-icons">
-            <!-- Apni image icon ka path 'src' me daalo -->
             <img src="/assets/image.svg" alt="Image Icon" class="top-icon-img">
-            
-            <!-- Apni video icon ka path 'src' me daalo -->
             <img src="/assets/video.svg" alt="Video Icon" class="top-icon-img">
-            
-            <!-- Apni audio icon ka path 'src' me daalo -->
             <img src="/assets/audio.svg" alt="Audio Icon" class="top-icon-img">
         </div>
 
@@ -184,8 +201,7 @@
         </div>
     </div>
 
-    <!-- 💡 [PLACEHOLDER 2]: Neeche kone me jhankti hui (peeking) sheep yahan lgegi -->
-    <!-- Apni cutout sheep image ka path yahan 'src' me daalo -->
+    <!-- Neeche kone me jhankti hui sheep (Bilkul touch nahi kiya ise) -->
     <img src="/assets/sheep.svg" alt="Peeking Sheep" class="bottom-mascot">
 
 </body>
