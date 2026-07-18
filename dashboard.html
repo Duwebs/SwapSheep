@@ -28,12 +28,31 @@
             justify-content: center; 
             align-items: center; 
             padding: 20px; 
+            position: relative;
+            overflow-x: hidden; /* Taaki sheep ki wajah se horizontal scrollbar na aaye */
         }
         
         .app-container { 
             width: 100%; 
             max-width: 400px; 
             text-align: center; 
+            z-index: 2; /* Content sheep ke upar dikhega */
+        }
+
+        /* --- New: Top Icons Styles --- */
+        .top-media-icons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 30px; /* Logo aur icons ke beech ka gap */
+            padding: 0 10px;
+        }
+
+        .top-icon-img {
+            width: 75px; /* Icons ka size yahan se chota-bada kar sakte ho */
+            height: auto;
+            object-fit: contain;
         }
         
         /* --- Logo Styles --- */
@@ -42,7 +61,7 @@
             max-width: 95px; 
             min-width: 80px;
             aspect-ratio: 1 / 1;
-            margin: 0 auto 15px auto; /* Centers the logo and adds gap below it */
+            margin: 0 auto 15px auto; 
         }
 
         .sheep-logo { width: 100%; height: 100%; }
@@ -108,11 +127,35 @@
             color: #fff; 
             transform: translateY(-2px); 
         }
+
+        /* --- New: Bottom Corner Sheep Styles --- */
+        .bottom-mascot {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 120px; /* Sheep ka size, mobile ke hisab se perfect hai */
+            height: auto;
+            z-index: 1; /* Background me peeking effect ke liye */
+            pointer-events: none; /* Taaki sheep par click karne se koi button block na ho */
+        }
     </style>
 </head>
 <body>
+
     <div class="app-container">
-        <!-- 1. Top Rotating Logo -->
+        <!-- 💡 [PLACEHOLDER 1]: Uper waale teeno image, video aur audio icons yahan hain -->
+        <div class="top-media-icons">
+            <!-- Apni image icon ka path 'src' me daalo -->
+            <img src="path-to-your-image-icon.png" alt="Image Icon" class="image.svg">
+            
+            <!-- Apni video icon ka path 'src' me daalo -->
+            <img src="path-to-your-video-icon.png" alt="Video Icon" class="video.svg">
+            
+            <!-- Apni audio icon ka path 'src' me daalo -->
+            <img src="path-to-your-audio-icon.png" alt="Audio Icon" class="audio.svg">
+        </div>
+
+        <!-- 2. Top Rotating Logo -->
         <div class="logo-wrapper">
             <svg class="sheep-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                 <g class="rotating-loop">
@@ -127,18 +170,23 @@
             </svg>
         </div>
 
-        <!-- 2. Brand Title -->
+        <!-- 3. Brand Title -->
         <h1 class="brand-title">swapsheep</h1>
         
-        <!-- 3. Text/Code Box -->
+        <!-- 4. Text/Code Box -->
         <textarea class="text-input-box" placeholder="Paste your code or text here..."></textarea>
 
-        <!-- 4. Navigation Hub -->
+        <!-- 5. Navigation Hub -->
         <div class="nav-grid">
             <a href="image.html" class="nav-card">IMAGE</a>
             <a href="video.html" class="nav-card">VIDEO</a>
             <a href="audio.html" class="nav-card">AUDIO</a>
         </div>
     </div>
+
+    <!-- 💡 [PLACEHOLDER 2]: Neeche kone me jhankti hui (peeking) sheep yahan lgegi -->
+    <!-- Apni cutout sheep image ka path yahan 'src' me daalo -->
+    <img src="sheep.svg" alt="Peeking Sheep" class="bottom-mascot">
+
 </body>
 </html>
