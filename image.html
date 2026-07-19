@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -178,10 +176,32 @@
             display: none;
         }
 
+        /* ✨ NEW: Neo-Brutalist Code Output Box Styles */
+        .code-output-box {
+            display: none; 
+            background: #fff;
+            border: 1.5px solid var(--line-color);
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 3px 3px 0px var(--line-color);
+        }
+
+        .generated-qr {
+            display: none;
+            margin: 12px auto 0 auto;
+            border: 1.5px solid var(--line-color);
+            box-shadow: 2px 2px 0px var(--line-color);
+            padding: 5px;
+            background: #fff;
+        }
+
         /* --- Bottom Back to Dashboard Link Style --- */
         .back-dashboard-link {
             display: inline-block;
-            margin-top: 25px;
+            margin-top: 15px;
             color: var(--text-main);
             text-decoration: underline;
             font-size: 0.9rem;
@@ -217,7 +237,6 @@
         <!-- Interactive Upload / Preview Box -->
         <div class="upload-box" id="drop-zone" onclick="document.getElementById('file-input').click()">
             <div id="upload-prompt">
-                <!-- Clean SVG Image Vector Icon instead of Emoji -->
                 <svg class="upload-icon-svg" viewBox="0 0 24 24">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                     <circle cx="8.5" cy="8.5" r="1.5" />
@@ -237,7 +256,13 @@
         <!-- Status Alert -->
         <div class="status-message" id="status-text"></div>
 
-        <!-- Bottom Back to Dashboard Link Added Here -->
+        <!-- ✨ NEW: Code & QR Output Container (Hidden by default) -->
+        <div id="code-output" class="code-output-box">
+            <div>IMAGE CODE: <span id="pin-display" style="color: var(--accent-rust);">----</span></div>
+            <img id="qr-display" class="generated-qr" src="" alt="Scan QR Code" width="140" height="140">
+        </div>
+
+        <!-- Bottom Back to Dashboard Link -->
         <div>
             <a href="dashboard.html" class="back-dashboard-link">← Back to Dashboard</a>
         </div>
@@ -250,6 +275,11 @@
         const previewImg = document.getElementById('image-preview');
         const uploadPrompt = document.getElementById('upload-prompt');
         const statusText = document.getElementById('status-text');
+        
+        // ✨ New variables for QR output
+        const codeOutput = document.getElementById('code-output');
+        const pinDisplay = document.getElementById('pin-display');
+        const qrDisplay = document.getElementById('qr-display');
 
         // Drag & Drop State styling
         ['dragenter', 'dragover'].forEach(eventName => {
@@ -294,31 +324,42 @@
                 // Redo border to solid style once image loaded
                 dropZone.style.borderStyle = 'solid';
                 statusText.style.display = 'none';
+                
+                // ✨ New image select hote hi purana code-output container chhupa do
+                codeOutput.style.display = 'none';
             }
             reader.readAsDataURL(file);
         }
 
-        // Action Trigger Animation & Action
+        // ✨ Modified: Action Trigger for PIN & QR Generation
         function processImageSwap() {
             if (!fileInput.files || fileInput.files.length === 0) {
                 statusText.textContent = "Bhai, pehle koi image toh select karo! 🐑";
                 statusText.style.display = 'block';
+                codeOutput.style.display = 'none';
                 return;
             }
             
-            statusText.textContent = "Swapping your image... 🐑💨";
+            statusText.textContent = "Uploading image & generating code... 🐑💨";
             statusText.style.display = 'block';
+            codeOutput.style.display = 'none'; // Pehle wale box ko reset karo loading ke dauran
 
-            // Reset interaction simulation
+            // Real database delay ko simulate karne ke liye 1 second ka timeout
             setTimeout(() => {
-                alert("Image successfully swapped! 🎉");
-                // Reset states
-                fileInput.value = '';
-                previewImg.style.display = 'none';
-                uploadPrompt.style.display = 'block';
-                dropZone.style.borderStyle = 'dashed';
-                statusText.style.display = 'none';
-            }, 1500);
+                // 4-digit random number generate karna
+                const randomPIN = Math.floor(1000 + Math.random() * 9000);
+                pinDisplay.innerText = randomPIN;
+                
+                // Fast Free API ke throug PIN data ko QR code image me convert karna
+                qrDisplay.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${randomPIN}`;
+                qrDisplay.style.display = 'block';
+                
+                // Elements ko show karna
+                codeOutput.style.display = 'block';
+                statusText.textContent = "Image successfully uploaded! 🎉";
+                
+                // TODO: Yahan par Firebase storage me image upload aur firestore me PIN mapping ka code aayega
+            }, 1000);
         }
     </script>
 </body>
