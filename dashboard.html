@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Swapsheep Dashboard</title>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #F5F2EB;
@@ -13,215 +15,53 @@
             --card-bg: rgba(255, 255, 255, 0.5);
         }
         
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            font-family: sans-serif; 
-        }
-        
-        body { 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
-            min-height: 100vh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            padding: 20px; 
-            position: relative;
-            overflow-x: hidden; 
-        }
-        
-        .app-container { 
-            width: 100%; 
-            max-width: 400px; 
-            text-align: center; 
-            z-index: 2; 
-        }
-
-        /* --- Top Icons Styles --- */
-        .top-media-icons {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 30px; 
-            padding: 0 10px;
-        }
-
-        .top-icon-img {
-            width: 90px; 
-            height: auto;
-            object-fit: contain;
-            cursor: pointer;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; position: relative; overflow-x: hidden; }
+        .app-container { width: 100%; max-width: 400px; text-align: center; z-index: 2; }
+        .top-media-icons { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 30px; padding: 0 10px; }
+        .top-icon-img { width: 90px; height: auto; object-fit: contain; cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .top-media-icons img:nth-child(1) { transform: rotate(-3deg); }
         .top-media-icons img:nth-child(2) { transform: rotate(2.5deg); }
         .top-media-icons img:nth-child(3) { transform: rotate(-1.5deg); }
-
-        .top-media-icons img:hover,
-        .top-media-icons img:active {
-            transform: rotate(0deg) scale(1.12); 
-        }
+        .top-media-icons img:hover, .top-media-icons img:active { transform: rotate(0deg) scale(1.12); }
         
-        /* --- Logo Styles --- */
-        .logo-wrapper { 
-            width: 25vw;
-            max-width: 95px; 
-            min-width: 80px;
-            aspect-ratio: 1 / 1;
-            margin: 0 auto 15px auto; 
-        }
-
+        .logo-wrapper { width: 25vw; max-width: 95px; min-width: 80px; aspect-ratio: 1 / 1; margin: 0 auto 15px auto; }
         .sheep-logo { width: 100%; height: 100%; }
         .rust-sun { fill: var(--accent-rust); }
         .sheep-lines, .arrow-path, .arrow-head { stroke: var(--line-color); stroke-linecap: round; stroke-linejoin: round; fill: none; }
         .sheep-lines { stroke-width: 3.5; }
         .arrow-path, .arrow-head { stroke-width: 2.5; }
+        .rotating-loop { transform-origin: 100px 100px; animation: spinLoop 12s linear infinite; }
+        @keyframes spinLoop { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        .rotating-loop {
-            transform-origin: 100px 100px;
-            animation: spinLoop 12s linear infinite;
-        }
-
-        @keyframes spinLoop {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .brand-title { 
-            font-size: 2.2rem; 
-            font-weight: 300; 
-            letter-spacing: 3px; 
-            margin-bottom: 20px; 
-        }
+        .brand-title { font-size: 2.2rem; font-weight: 300; letter-spacing: 3px; margin-bottom: 20px; }
+        .text-input-box { width: 100%; height: 140px; background: var(--card-bg); border: 1.5px solid var(--line-color); border-radius: 4px; padding: 12px; margin-bottom: 20px; box-shadow: 3px 3px 0px var(--line-color); resize: none; outline: none; font-size: 1rem; }
         
-        /* Text Box */
-        .text-input-box {
-            width: 100%; 
-            height: 140px; 
-            background: var(--card-bg);
-            border: 1.5px solid var(--line-color); 
-            border-radius: 4px; 
-            padding: 12px;
-            margin-bottom: 20px; 
-            box-shadow: 3px 3px 0px var(--line-color);
-            resize: none;
-            outline: none;
-            font-size: 1rem;
-        }
+        .action-btn { width: 100%; padding: 14px; background: var(--accent-rust); color: white; border: 1.5px solid var(--line-color); border-radius: 4px; font-weight: 700; font-size: 1rem; letter-spacing: 1px; cursor: pointer; box-shadow: 3px 3px 0px var(--line-color); transition: all 0.1s; margin-bottom: 15px; }
+        .action-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--line-color); }
+        .action-btn:disabled { background: #999; cursor: not-allowed; box-shadow: 1px 1px 0px var(--line-color); transform: translate(2px, 2px); }
 
-        /* Buttons */
-        .action-btn {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent-rust);
-            color: white;
-            border: 1.5px solid var(--line-color);
-            border-radius: 4px;
-            font-weight: 700;
-            font-size: 1rem;
-            letter-spacing: 1px;
-            cursor: pointer;
-            box-shadow: 3px 3px 0px var(--line-color);
-            transition: all 0.1s;
-            margin-bottom: 15px;
-        }
-
-        .action-btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0px var(--line-color);
-        }
-
-        .status-message {
-            margin-bottom: 15px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--accent-rust);
-            display: none;
-        }
-
-        .secondary-link {
-            display: inline-block;
-            margin-bottom: 25px;
-            color: var(--text-main);
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-decoration: underline;
-            cursor: pointer;
-        }
-
-        .code-output-box {
-            display: none; 
-            background: #fff;
-            border: 1.5px solid var(--line-color);
-            padding: 15px;
-            border-radius: 4px;
-            font-weight: 700;
-            margin-bottom: 25px;
-            box-shadow: 3px 3px 0px var(--line-color);
-        }
-
-        .generated-qr {
-            display: none;
-            margin: 12px auto 0 auto;
-            border: 1.5px solid var(--line-color);
-            box-shadow: 2px 2px 0px var(--line-color);
-            padding: 5px;
-            background: #fff;
-        }
-
-        /* Navigation Grid */
-        .nav-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-            margin-top: 10px;
-        }
+        .status-message { margin-bottom: 15px; font-size: 0.85rem; font-weight: 600; color: var(--accent-rust); display: none; }
+        .secondary-link { display: inline-block; margin-bottom: 25px; color: var(--text-main); font-weight: 600; font-size: 0.9rem; text-decoration: underline; cursor: pointer; }
         
-        .nav-card {
-            background: var(--card-bg);
-            border: 1.5px solid var(--line-color);
-            border-radius: 4px;
-            padding: 20px 10px;
-            text-decoration: none;
-            color: var(--text-main);
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-            box-shadow: 2px 2px 0px var(--line-color);
-        }
-        
-        .nav-card:hover { 
-            background: var(--accent-rust); 
-            color: #fff; 
-            transform: translateY(-2px); 
-        }
+        .code-output-box { display: none; background: #fff; border: 1.5px solid var(--line-color); padding: 15px; border-radius: 4px; font-weight: 700; margin-bottom: 25px; box-shadow: 3px 3px 0px var(--line-color); }
+        .generated-qr { display: none; margin: 12px auto 0 auto; border: 1.5px solid var(--line-color); box-shadow: 2px 2px 0px var(--line-color); padding: 5px; background: #fff; }
 
-        .bottom-mascot {
-            position: fixed;
-            bottom: 0;
-            right: 0;
-            width: 120px; 
-            height: auto;
-            z-index: 1; 
-            pointer-events: none; 
-        }
+        .nav-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .nav-card { background: var(--card-bg); border: 1.5px solid var(--line-color); border-radius: 4px; padding: 20px 10px; text-decoration: none; color: var(--text-main); font-weight: 600; font-size: 0.85rem; transition: all 0.2s; box-shadow: 2px 2px 0px var(--line-color); }
+        .nav-card:hover { background: var(--accent-rust); color: #fff; transform: translateY(-2px); }
+        .bottom-mascot { position: fixed; bottom: 0; right: 0; width: 120px; height: auto; z-index: 1; pointer-events: none; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <!-- Top Icons -->
         <div class="top-media-icons">
             <a href="image.html"><img src="/assets/image.svg" alt="Image Icon" class="top-icon-img"></a>
             <a href="video.html"><img src="/assets/video.svg" alt="Video Icon" class="top-icon-img"></a>
             <a href="audio.html"><img src="/assets/audio.svg" alt="Audio Icon" class="top-icon-img"></a>
         </div>
 
-        <!-- Rotating Logo -->
         <div class="logo-wrapper">
             <svg class="sheep-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                 <g class="rotating-loop">
@@ -237,26 +77,16 @@
         </div>
 
         <h1 class="brand-title">swapsheep</h1>
-        
-        <!-- Text Input -->
         <textarea id="text-box" class="text-input-box" placeholder="Paste your text here to swap..."></textarea>
-
-        <!-- Swap Button -->
         <button id="swap-btn" class="action-btn">SWAP TEXT</button>
-
-        <!-- Status Alert Message -->
         <div class="status-message" id="status-text"></div>
-        
-        <!-- Link to Join Page -->
         <a href="join.html" class="secondary-link">Have a code? Receive/Join Swap</a>
 
-        <!-- Code & QR Output -->
         <div id="code-output" class="code-output-box">
             <div>YOUR CODE: <span id="pin-display" style="color: var(--accent-rust);">----</span></div>
             <img id="qr-display" class="generated-qr" src="" alt="Scan QR Code" width="140" height="140">
         </div>
 
-        <!-- Navigation Hub -->
         <div class="nav-grid">
             <a href="image.html" class="nav-card">IMAGE</a>
             <a href="video.html" class="nav-card">VIDEO</a>
@@ -266,27 +96,13 @@
 
     <img src="/assets/sheep.svg" alt="Peeking Sheep" class="bottom-mascot">
 
-    <!-- Firebase SDK Modules Integration -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <script>
+        // Apni Supabase Details Yahan Daalo
+        const SUPABASE_URL = "YOUR_SUPABASE_URL";
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Tumhara exact Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyCyFPcQ6X0bTS97DhL-SEJ_2ebvvy1SozU",
-            authDomain: "swapsheep-61cfc.firebaseapp.com",
-            projectId: "swapsheep-61cfc",
-            storageBucket: "swapsheep-61cfc.firebasestorage.app",
-            messagingSenderId: "620397250043",
-            appId: "1:620397250043:web:26111357ada1c3958cf75e",
-            measurementId: "G-GF9N6MDCCN"
-        };
-
-        // Firebase & Firestore Initialize
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Elements Mapping
         const swapBtn = document.getElementById('swap-btn');
         const codeOutput = document.getElementById('code-output');
         const pinDisplay = document.getElementById('pin-display');
@@ -294,7 +110,6 @@
         const textBox = document.getElementById('text-box');
         const statusText = document.getElementById('status-text');
 
-        // Async core text swap handling
         swapBtn.addEventListener('click', async () => {
             const textValue = textBox.value.trim();
 
@@ -308,20 +123,18 @@
             statusText.textContent = "Swapping your text... 🐑💨";
             statusText.style.display = 'block';
             codeOutput.style.display = 'none';
+            swapBtn.disabled = true;
 
-            // Generate 4-digit numeric string
             const randomPIN = Math.floor(1000 + Math.random() * 9000).toString();
 
             try {
-                // Writing payload to Firestore with PIN as document ID
-                const docRef = doc(db, "swaps", randomPIN);
-                await setDoc(docRef, {
-                    type: 'text',
-                    content: textValue,
-                    createdAt: serverTimestamp()
-                });
+                // Supabase Table me data insert karna
+                const { error } = await supabase
+                    .from('swaps')
+                    .insert([{ pin: randomPIN, type: 'text', content: textValue }]);
 
-                // Displaying outcomes
+                if (error) throw error;
+
                 pinDisplay.innerText = randomPIN;
                 qrDisplay.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${randomPIN}`;
                 qrDisplay.style.display = 'block';
@@ -329,12 +142,13 @@
                 statusText.textContent = "Text successfully swapped! 🎉";
 
             } catch (error) {
-                console.error("Firestore Save Error: ", error);
-                statusText.textContent = "Database communication error. Clear security rules or retry! ❌";
+                console.error("Supabase Error: ", error);
+                statusText.textContent = "Database communication error. Check your Supabase table! ❌";
+            } finally {
+                swapBtn.disabled = false;
             }
         });
 
-        // Clear output context on fresh text modifications
         textBox.addEventListener('input', () => {
             codeOutput.style.display = 'none';
             statusText.style.display = 'none';

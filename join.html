@@ -6,6 +6,8 @@
     <title>Join Swap - Swapsheep</title>
     <!-- QR Scanner Library via CDN -->
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #F5F2EB;
@@ -93,6 +95,13 @@
             box-shadow: 1px 1px 0px var(--line-color);
         }
 
+        .action-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            box-shadow: 1px 1px 0px var(--line-color);
+            transform: translate(2px, 2px);
+        }
+
         /* Result Box */
         .result-box {
             display: none;
@@ -109,6 +118,7 @@
             white-space: pre-wrap;
             font-size: 0.95rem;
             color: var(--text-main);
+            word-break: break-all;
         }
 
         .back-link {
@@ -144,44 +154,31 @@
         <!-- 2. Input Section with Button Below -->
         <div class="receive-zone">
             <input type="text" id="pin-input" class="pin-input" placeholder="ENTER PIN" maxlength="6">
-            <button id="get-btn" class="action-btn">GET TEXT</button>
+            <button id="get-btn" class="action-btn">GET DATA</button>
         </div>
 
         <!-- Result Content Box -->
         <div id="result-box" class="result-box"></div>
 
-        <a href="dashboard.html" class="back-link">← Go Back to Send Text</a>
+        <a href="dashboard.html" class="back-link">← Go Back to Dashboard</a>
     </div>
 
     <!-- Bottom Mascot -->
     <img src="/assets/sheep.svg" alt="Peeking Sheep" class="bottom-mascot">
 
-    <!-- Firebase SDK Integration -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <script>
+        // Apni Supabase Details Yahan Daalo
+        const SUPABASE_URL = "YOUR_SUPABASE_URL";
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
 
-        // Firebase Configurations matching dashboard.html
-        const firebaseConfig = {
-            apiKey: "AIzaSyCyFPcQ6X0bTS97DhL-SEJ_2ebvvy1SozU",
-            authDomain: "swapsheep-61cfc.firebaseapp.com",
-            projectId: "swapsheep-61cfc",
-            storageBucket: "swapsheep-61cfc.firebasestorage.app",
-            messagingSenderId: "620397250043",
-            appId: "1:620397250043:web:26111357ada1c3958cf75e",
-            measurementId: "G-GF9N6MDCCN"
-        };
-
-        // Initialize Firebase & Firestore
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const getBtn = document.getElementById('get-btn');
         const pinInput = document.getElementById('pin-input');
         const resultBox = document.getElementById('result-box');
         let html5QrCode = null;
 
-        // Fetch Data from Firestore Function
+        // Fetch Data from Supabase Database
         async function fetchSwapData(code) {
             if(!code) {
                 alert("Pehle code daalo ya QR scan karo!");
@@ -191,23 +188,36 @@
             resultBox.style.display = 'block';
             resultBox.style.color = 'var(--text-main)';
             resultBox.innerText = "🐑 Connecting to database...";
+            getBtn.disabled = true;
 
             try {
-                const docRef = doc(db, "swaps", code);
-                const docSnap = await getDoc(docRef);
+                // Supabase me 'swaps' table se pin map matching row fetch karna
+                const { data, error } = await supabase
+                    .from('swaps')
+                    .select('*')
+                    .eq('pin', code)
+                    .maybeSingle(); // error throw nahi karega agar document na mile
 
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    // Displaying text context
-                    resultBox.innerText = data.content;
+                if (error) throw error;
+
+                if (data) {
+                    // Check testing variables or logic type for custom user messages
+                    if(data.type === 'image' || data.type === 'video' || data.type === 'audio') {
+                        resultBox.innerHTML = `<strong>Type:</strong> ${data.type.toUpperCase()}<br><br><a href="${data.content}" target="_blank" style="color: var(--accent-rust); font-weight: 700;">Click here to Open File Link</a>`;
+                    } else {
+                        // Regular pure text render context
+                        resultBox.innerText = data.content;
+                    }
                 } else {
                     resultBox.style.color = 'var(--accent-rust)';
                     resultBox.innerText = "❌ Code galat hai ya data expire ho chuka hai, bhai!";
                 }
             } catch (error) {
-                console.error("Fetch operational failure: ", error);
+                console.error("Supabase Query Failure: ", error);
                 resultBox.style.color = 'var(--accent-rust)';
-                resultBox.innerText = "❌ Connection failed. Check network or security rules.";
+                resultBox.innerText = "❌ Connection failed. Check database configurations or network.";
+            } finally {
+                getBtn.disabled = false;
             }
         }
 

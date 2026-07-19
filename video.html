@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Swapsheep - Video Upload</title>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #F5F2EB;
@@ -167,6 +169,13 @@
             box-shadow: 1px 1px 0px var(--accent-rust); 
         }
 
+        .btn-swap:disabled {
+            background: #999;
+            cursor: not-allowed;
+            box-shadow: 1px 1px 0px var(--accent-rust);
+            transform: translate(2px, 2px);
+        }
+
         .status-message {
             margin-top: 15px;
             font-size: 0.85rem;
@@ -232,7 +241,7 @@
 
         <h1 class="brand-title">swapsheep / vid</h1>
         
-        <!-- Interactive Upload / Preview Box (Modified: Removed inline click) -->
+        <!-- Interactive Upload / Preview Box -->
         <div class="upload-box" id="drop-zone">
             <div id="upload-prompt">
                 <!-- Vector SVG Video Camera Icon -->
@@ -249,7 +258,7 @@
             <input type="file" id="file-input" accept="video/*">
         </div>
 
-        <!-- Action Trigger (Modified: Removed inline onclick for modular script compatibility) -->
+        <!-- Action Trigger -->
         <button class="btn-swap" id="swap-video-btn">SWAP VIDEO</button>
 
         <!-- Status Alert -->
@@ -267,27 +276,13 @@
         </div>
     </div>
 
-    <!-- Firebase Integrated Module Script -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    <script>
+        // Apni Supabase Details Yahan Daalo
+        const SUPABASE_URL = "YOUR_SUPABASE_URL";
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+        const BUCKET_NAME = "swapsheep"; // Supabase storage bucket name
 
-        // Same Project Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCyFPcQ6X0bTS97DhL-SEJ_2ebvvy1SozU",
-            authDomain: "swapsheep-61cfc.firebaseapp.com",
-            projectId: "swapsheep-61cfc",
-            storageBucket: "swapsheep-61cfc.firebasestorage.app",
-            messagingSenderId: "620397250043",
-            appId: "1:620397250043:web:26111357ada1c3958cf75e",
-            measurementId: "G-GF9N6MDCCN"
-        };
-
-        // Initialize Firebase Engines
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Elements Mapping
         const dropZone = document.getElementById('drop-zone');
@@ -300,7 +295,7 @@
         const pinDisplay = document.getElementById('pin-display');
         const qrDisplay = document.getElementById('qr-display');
 
-        // Modular handling for drop zone click
+        // Drop zone click handling
         dropZone.addEventListener('click', () => fileInput.click());
 
         // Drag & Drop event handling
@@ -334,19 +329,16 @@
         });
 
         function showPreview(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewVid.src = e.target.result;
-                previewVid.style.display = 'block';
-                uploadPrompt.style.display = 'none';
-                dropZone.style.borderStyle = 'solid';
-                statusText.style.display = 'none';
-                codeOutput.style.display = 'none';
-            }
-            reader.readAsDataURL(file);
+            // Memory efficient object URL creation for heavy video rendering
+            previewVid.src = URL.createObjectURL(file);
+            previewVid.style.display = 'block';
+            uploadPrompt.style.display = 'none';
+            dropZone.style.borderStyle = 'solid';
+            statusText.style.display = 'none';
+            codeOutput.style.display = 'none';
         }
 
-        // Main Firebase Video Processing Logic
+        // Main Supabase Video Processing Logic
         async function processVideoSwap() {
             if (!fileInput.files || fileInput.files.length === 0) {
                 statusText.textContent = "Bhai, pehle koi video toh select karo! 🐑";
@@ -356,31 +348,38 @@
             }
 
             const file = fileInput.files[0];
-            statusText.textContent = "Uploading video to Storage (heavy files may take time)... 🐑💨";
+            statusText.textContent = "Uploading video to Supabase Storage... 🐑💨";
             statusText.style.display = 'block';
             codeOutput.style.display = 'none';
+            swapVideoBtn.disabled = true;
 
             // Generate unique 4-digit PIN for tracking
             const randomPIN = Math.floor(1000 + Math.random() * 9000).toString();
 
             try {
-                // 1. Setup Storage destination reference inside 'videos' folder
                 const fileExtension = file.name.split('.').pop();
-                const storageRef = ref(storage, `videos/${randomPIN}.${fileExtension}`);
+                const filePath = `videos/${randomPIN}.${fileExtension}`;
 
-                // 2. Perform file upload
-                await uploadBytes(storageRef, file);
+                // 1. Supabase Storage me video upload process execution
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from(BUCKET_NAME)
+                    .upload(filePath, file);
 
-                // 3. Generate secure download link
-                const downloadURL = await getDownloadURL(storageRef);
+                if (uploadError) throw uploadError;
 
-                // 4. Save metadata map to Firestore (type set as 'video')
-                const docRef = doc(db, "swaps", randomPIN);
-                await setDoc(docRef, {
-                    type: 'video',
-                    content: downloadURL,
-                    createdAt: serverTimestamp()
-                });
+                // 2. Generate secure public download link
+                const { data: urlData } = supabase.storage
+                    .from(BUCKET_NAME)
+                    .getPublicUrl(filePath);
+                
+                const downloadURL = urlData.publicUrl;
+
+                // 3. Save metadata configuration directly inside the database table
+                const { error: dbError } = await supabase
+                    .from('swaps')
+                    .insert([{ pin: randomPIN, type: 'video', content: downloadURL }]);
+
+                if (dbError) throw dbError;
 
                 // Rendering Success UI Metrics
                 pinDisplay.innerText = randomPIN;
@@ -390,8 +389,10 @@
                 statusText.textContent = "Video successfully uploaded! 🎉";
 
             } catch (error) {
-                console.error("Firebase Process Error: ", error);
-                statusText.textContent = "Upload failed! Storage security rules check karo ya file size short karo. ❌";
+                console.error("Supabase Execution Failure: ", error);
+                statusText.textContent = "Upload failed! Storage configurations ya bucket names check karo. ❌";
+            } finally {
+                swapVideoBtn.disabled = false;
             }
         }
 

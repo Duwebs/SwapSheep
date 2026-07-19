@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Swapsheep - Image Upload</title>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #F5F2EB;
@@ -13,211 +15,45 @@
             --card-bg: rgba(255, 255, 255, 0.5);
         }
         
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            font-family: sans-serif; 
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 0), radial-gradient(rgba(0,0,0,0.02) 1px, transparent 0); background-size: 4px 4px; background-position: 0 0, 2px 2px; }
+        .app-container { width: 100%; max-width: 400px; text-align: center; padding-top: 20px; }
         
-        body { 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
-            min-height: 100vh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            padding: 20px; 
-            background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 0), radial-gradient(rgba(0,0,0,0.02) 1px, transparent 0);
-            background-size: 4px 4px;
-            background-position: 0 0, 2px 2px;
-        }
-        
-        .app-container { 
-            width: 100%; 
-            max-width: 400px; 
-            text-align: center; 
-            padding-top: 20px;
-        }
-        
-        /* --- Logo Styles (Small Version) --- */
-        .logo-wrapper { 
-            width: 20vw;
-            max-width: 75px; 
-            min-width: 60px;
-            aspect-ratio: 1 / 1;
-            margin: 0 auto 10px auto;
-        }
-
+        .logo-wrapper { width: 20vw; max-width: 75px; min-width: 60px; aspect-ratio: 1 / 1; margin: 0 auto 10px auto; }
         .sheep-logo { width: 100%; height: 100%; }
         .rust-sun { fill: var(--accent-rust); }
         .sheep-lines, .arrow-path, .arrow-head { stroke: var(--line-color); stroke-linecap: round; stroke-linejoin: round; fill: none; }
         .sheep-lines { stroke-width: 3.5; }
         .arrow-path, .arrow-head { stroke-width: 2.5; }
+        .rotating-loop { transform-origin: 100px 100px; animation: spinLoop 12s linear infinite; }
+        @keyframes spinLoop { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        .rotating-loop {
-            transform-origin: 100px 100px;
-            animation: spinLoop 12s linear infinite;
-        }
-
-        @keyframes spinLoop {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .brand-title { 
-            font-size: 1.8rem; 
-            font-weight: 300; 
-            letter-spacing: 3px; 
-            margin-bottom: 25px; 
-        }
+        .brand-title { font-size: 1.8rem; font-weight: 300; letter-spacing: 3px; margin-bottom: 25px; }
         
-        /* --- Drag & Drop Image Upload Box --- */
-        .upload-box {
-            width: 100%; 
-            height: 220px; 
-            background: var(--card-bg);
-            border: 2px dashed var(--line-color); 
-            border-radius: 6px; 
-            padding: 20px;
-            margin-bottom: 25px; 
-            box-shadow: 4px 4px 0px var(--line-color);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.2s ease;
-        }
+        .upload-box { width: 100%; height: 220px; background: var(--card-bg); border: 2px dashed var(--line-color); border-radius: 6px; padding: 20px; margin-bottom: 25px; box-shadow: 4px 4px 0px var(--line-color); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; position: relative; overflow: hidden; transition: all 0.2s ease; }
+        .upload-box.dragover { border-color: var(--accent-rust); background-color: rgba(211, 84, 54, 0.05); box-shadow: 4px 4px 0px var(--accent-rust); }
 
-        .upload-box.dragover {
-            border-color: var(--accent-rust);
-            background-color: rgba(211, 84, 54, 0.05);
-            box-shadow: 4px 4px 0px var(--accent-rust);
-        }
+        .upload-icon-svg { width: 46px; height: 46px; stroke: var(--line-color); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 12px; }
+        .upload-text { font-size: 0.9rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
+        .upload-subtext { font-size: 0.75rem; color: #7A756B; }
+        #file-input { display: none; }
+        .preview-img { width: 100%; height: 100%; object-fit: contain; display: none; position: absolute; top: 0; left: 0; padding: 10px; background: var(--card-bg); }
 
-        /* --- New Beautiful SVG Icon Style --- */
-        .upload-icon-svg {
-            width: 46px;
-            height: 46px;
-            stroke: var(--line-color);
-            fill: none;
-            stroke-width: 1.8;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            margin-bottom: 12px;
-        }
+        .btn-swap { width: 100%; background: var(--line-color); color: white; padding: 16px; border: 1.5px solid var(--line-color); cursor: pointer; font-size: 0.95rem; font-weight: 600; letter-spacing: 2px; border-radius: 4px; box-shadow: 3px 3px 0px var(--accent-rust); transition: all 0.15s ease; -webkit-tap-highlight-color: transparent; }
+        .btn-swap:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--accent-rust); }
+        .btn-swap:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--accent-rust); }
+        .btn-swap:disabled { background: #999; cursor: not-allowed; box-shadow: 1px 1px 0px var(--accent-rust); transform: translate(2px, 2px); }
 
-        .upload-text {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-main);
-            margin-bottom: 4px;
-        }
+        .status-message { margin-top: 15px; font-size: 0.85rem; font-weight: 600; color: var(--accent-rust); display: none; }
 
-        .upload-subtext {
-            font-size: 0.75rem;
-            color: #7A756B;
-        }
-
-        /* Hidden Input */
-        #file-input {
-            display: none;
-        }
-
-        /* Image Preview Style */
-        .preview-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            padding: 10px;
-            background: var(--card-bg);
-        }
-
-        /* --- Swap Button --- */
-        .btn-swap { 
-            width: 100%;
-            background: var(--line-color); 
-            color: white; 
-            padding: 16px; 
-            border: 1.5px solid var(--line-color); 
-            cursor: pointer; 
-            font-size: 0.95rem; 
-            font-weight: 600;
-            letter-spacing: 2px;
-            border-radius: 4px; 
-            box-shadow: 3px 3px 0px var(--accent-rust); 
-            transition: all 0.15s ease;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .btn-swap:hover { 
-            transform: translate(-2px, -2px); 
-            box-shadow: 5px 5px 0px var(--accent-rust); 
-        }
-
-        .btn-swap:active { 
-            transform: translate(2px, 2px); 
-            box-shadow: 1px 1px 0px var(--accent-rust); 
-        }
-
-        /* Swap loading/success messages */
-        .status-message {
-            margin-top: 15px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--accent-rust);
-            display: none;
-        }
-
-        /* ✨ NEW: Neo-Brutalist Code Output Box Styles */
-        .code-output-box {
-            display: none; 
-            background: #fff;
-            border: 1.5px solid var(--line-color);
-            padding: 15px;
-            border-radius: 4px;
-            font-weight: 700;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            box-shadow: 3px 3px 0px var(--line-color);
-        }
-
-        .generated-qr {
-            display: none;
-            margin: 12px auto 0 auto;
-            border: 1.5px solid var(--line-color);
-            box-shadow: 2px 2px 0px var(--line-color);
-            padding: 5px;
-            background: #fff;
-        }
-
-        /* --- Bottom Back to Dashboard Link Style --- */
-        .back-dashboard-link {
-            display: inline-block;
-            margin-top: 15px;
-            color: var(--text-main);
-            text-decoration: underline;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .back-dashboard-link:hover {
-            color: var(--accent-rust);
-        }
+        .code-output-box { display: none; background: #fff; border: 1.5px solid var(--line-color); padding: 15px; border-radius: 4px; font-weight: 700; margin-top: 20px; margin-bottom: 20px; box-shadow: 3px 3px 0px var(--line-color); }
+        .generated-qr { display: none; margin: 12px auto 0 auto; border: 1.5px solid var(--line-color); box-shadow: 2px 2px 0px var(--line-color); padding: 5px; background: #fff; }
+        .back-dashboard-link { display: inline-block; margin-top: 15px; color: var(--text-main); text-decoration: underline; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .back-dashboard-link:hover { color: var(--accent-rust); }
     </style>
 </head>
 <body>
     <div class="app-container">
-
-        <!-- Rotating Logo -->
         <div class="logo-wrapper">
             <svg class="sheep-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                 <g class="rotating-loop">
@@ -234,7 +70,6 @@
 
         <h1 class="brand-title">swapsheep / img</h1>
         
-        <!-- Interactive Upload / Preview Box -->
         <div class="upload-box" id="drop-zone">
             <div id="upload-prompt">
                 <svg class="upload-icon-svg" viewBox="0 0 24 24">
@@ -245,52 +80,31 @@
                 <div class="upload-text">Choose an image</div>
                 <div class="upload-subtext">or drag & drop it here</div>
             </div>
-            <!-- Live Preview Element -->
             <img id="image-preview" class="preview-img" alt="Preview">
             <input type="file" id="file-input" accept="image/*">
         </div>
 
-        <!-- Action Trigger (Modified: Removed inline onclick for modules compatibility) -->
         <button class="btn-swap" id="swap-image-btn">SWAP IMAGE</button>
-
-        <!-- Status Alert -->
         <div class="status-message" id="status-text"></div>
 
-        <!-- ✨ Code & QR Output Container -->
         <div id="code-output" class="code-output-box">
             <div>IMAGE CODE: <span id="pin-display" style="color: var(--accent-rust);">----</span></div>
             <img id="qr-display" class="generated-qr" src="" alt="Scan QR Code" width="140" height="140">
         </div>
 
-        <!-- Bottom Back to Dashboard Link -->
         <div>
             <a href="dashboard.html" class="back-dashboard-link">← Back to Dashboard</a>
         </div>
     </div>
 
-    <!-- Firebase Integrated Module Script -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    <script>
+        // Apni Supabase Details Yahan Daalo
+        const SUPABASE_URL = "YOUR_SUPABASE_URL";
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+        const BUCKET_NAME = "swapsheep"; // Supabase me banaya hua bucket name
 
-        // Firebase Setup Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCyFPcQ6X0bTS97DhL-SEJ_2ebvvy1SozU",
-            authDomain: "swapsheep-61cfc.firebaseapp.com",
-            projectId: "swapsheep-61cfc",
-            storageBucket: "swapsheep-61cfc.firebasestorage.app",
-            messagingSenderId: "620397250043",
-            appId: "1:620397250043:web:26111357ada1c3958cf75e",
-            measurementId: "G-GF9N6MDCCN"
-        };
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Init Core Components
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
-
-        // Elements Mapping
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
         const previewImg = document.getElementById('image-preview');
@@ -301,10 +115,8 @@
         const pinDisplay = document.getElementById('pin-display');
         const qrDisplay = document.getElementById('qr-display');
 
-        // Click wrapper for box upload activation
         dropZone.addEventListener('click', () => fileInput.click());
 
-        // Drag & Drop event handling
         ['dragenter', 'dragover'].forEach(eventName => {
             dropZone.addEventListener(eventName, (e) => {
                 e.preventDefault();
@@ -347,7 +159,6 @@
             reader.readAsDataURL(file);
         }
 
-        // Main Image Upload & Mapping Routine
         async function processImageSwap() {
             if (!fileInput.files || fileInput.files.length === 0) {
                 statusText.textContent = "Bhai, pehle koi image toh select karo! 🐑";
@@ -357,33 +168,38 @@
             }
 
             const file = fileInput.files[0];
-            statusText.textContent = "Uploading image to Cloud Storage... 🐑💨";
+            statusText.textContent = "Uploading image to Supabase Storage... 🐑💨";
             statusText.style.display = 'block';
             codeOutput.style.display = 'none';
+            swapImageBtn.disabled = true;
 
-            // Generate unique 4-digit PIN sequence
             const randomPIN = Math.floor(1000 + Math.random() * 9000).toString();
 
             try {
-                // 1. Storage Reference setup (Images subdirectory)
                 const fileExtension = file.name.split('.').pop();
-                const storageRef = ref(storage, `images/${randomPIN}.${fileExtension}`);
+                const filePath = `images/${randomPIN}.${fileExtension}`;
 
-                // 2. Binary File Upload task execution
-                await uploadBytes(storageRef, file);
+                // 1. Supabase Storage me image upload karna
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from(BUCKET_NAME)
+                    .upload(filePath, file);
 
-                // 3. Extraction of public secure download link
-                const downloadURL = await getDownloadURL(storageRef);
+                if (uploadError) throw uploadError;
 
-                // 4. Firestore documentation push with matching code identifier
-                const docRef = doc(db, "swaps", randomPIN);
-                await setDoc(docRef, {
-                    type: 'image',
-                    content: downloadURL,
-                    createdAt: serverTimestamp()
-                });
+                // 2. Public URL extract karna
+                const { data: urlData } = supabase.storage
+                    .from(BUCKET_NAME)
+                    .getPublicUrl(filePath);
+                
+                const downloadURL = urlData.publicUrl;
 
-                // UI components final styling
+                // 3. Database (`swaps` table) me save karna
+                const { error: dbError } = await supabase
+                    .from('swaps')
+                    .insert([{ pin: randomPIN, type: 'image', content: downloadURL }]);
+
+                if (dbError) throw dbError;
+
                 pinDisplay.innerText = randomPIN;
                 qrDisplay.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${randomPIN}`;
                 qrDisplay.style.display = 'block';
@@ -391,12 +207,13 @@
                 statusText.textContent = "Image successfully uploaded! 🎉";
 
             } catch (error) {
-                console.error("Firebase Execution Failure: ", error);
-                statusText.textContent = "Storage or Database rejected upload. Check console configurations! ❌";
+                console.error("Supabase Error: ", error);
+                statusText.textContent = "Upload failed. Check your Supabase configuration! ❌";
+            } finally {
+                swapImageBtn.disabled = false;
             }
         }
 
-        // Hook click interaction to the module method execution
         swapImageBtn.addEventListener('click', processImageSwap);
     </script>
 </body>
