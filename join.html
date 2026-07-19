@@ -53,16 +53,15 @@
             background: #000;
         }
 
-        /* ✨ Modified: Receive Zone to stack input and button vertically */
         .receive-zone {
             display: flex;
-            flex-direction: column; /* Isse button niche aa jayega */
-            gap: 15px; /* Input aur Button ke beech ka gap */
+            flex-direction: column; 
+            gap: 15px; 
             margin-bottom: 20px;
         }
 
         .pin-input {
-            width: 100%; /* Poori width le lega */
+            width: 100%; 
             padding: 14px;
             background: var(--card-bg);
             border: 1.5px solid var(--line-color);
@@ -76,7 +75,7 @@
         }
 
         .action-btn {
-            width: 100%; /* Button bhi ab full width ka hai */
+            width: 100%; 
             padding: 14px;
             background: var(--accent-rust);
             color: white;
@@ -108,6 +107,8 @@
             text-align: left;
             overflow-y: auto;
             white-space: pre-wrap;
+            font-size: 0.95rem;
+            color: var(--text-main);
         }
 
         .back-link {
@@ -155,11 +156,66 @@
     <!-- Bottom Mascot -->
     <img src="/assets/sheep.svg" alt="Peeking Sheep" class="bottom-mascot">
 
-    <script>
+    <!-- Firebase SDK Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Firebase Configurations matching dashboard.html
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyFPcQ6X0bTS97DhL-SEJ_2ebvvy1SozU",
+            authDomain: "swapsheep-61cfc.firebaseapp.com",
+            projectId: "swapsheep-61cfc",
+            storageBucket: "swapsheep-61cfc.firebasestorage.app",
+            messagingSenderId: "620397250043",
+            appId: "1:620397250043:web:26111357ada1c3958cf75e",
+            measurementId: "G-GF9N6MDCCN"
+        };
+
+        // Initialize Firebase & Firestore
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         const getBtn = document.getElementById('get-btn');
         const pinInput = document.getElementById('pin-input');
         const resultBox = document.getElementById('result-box');
         let html5QrCode = null;
+
+        // Fetch Data from Firestore Function
+        async function fetchSwapData(code) {
+            if(!code) {
+                alert("Pehle code daalo ya QR scan karo!");
+                return;
+            }
+
+            resultBox.style.display = 'block';
+            resultBox.style.color = 'var(--text-main)';
+            resultBox.innerText = "🐑 Connecting to database...";
+
+            try {
+                const docRef = doc(db, "swaps", code);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    // Displaying text context
+                    resultBox.innerText = data.content;
+                } else {
+                    resultBox.style.color = 'var(--accent-rust)';
+                    resultBox.innerText = "❌ Code galat hai ya data expire ho chuka hai, bhai!";
+                }
+            } catch (error) {
+                console.error("Fetch operational failure: ", error);
+                resultBox.style.color = 'var(--accent-rust)';
+                resultBox.innerText = "❌ Connection failed. Check network or security rules.";
+            }
+        }
+
+        // Action button click handler
+        getBtn.addEventListener('click', () => {
+            const code = pinInput.value.trim();
+            fetchSwapData(code);
+        });
 
         // Automatically start camera when page loads
         window.addEventListener('DOMContentLoaded', () => {
@@ -170,28 +226,16 @@
                 { fps: 10, qrbox: { width: 220, height: 220 } },
                 (decodedText) => {
                     pinInput.value = decodedText;
+                    // Stop camera streaming post-detection
                     html5QrCode.stop().catch(err => console.log(err));
-                    getBtn.click(); // Auto click GET text box ke niche hone par bhi chalega
+                    // Auto hit database fetch logic
+                    fetchSwapData(decodedText);
                 },
                 (err) => {}
             ).catch((err) => {
                 console.error("Camera auto-start failed:", err);
-                document.getElementById('camera-preview').innerHTML = "<p style='color:#666; padding:40px 10px; font-size:0.9rem;'>Camera block hai bhai. Neeche PIN daal kar kaam chalao!</p>";
+                document.getElementById('camera-preview').innerHTML = "<div style='color:#666; padding:45px 15px; font-size:0.9rem;'>Camera block hai bhai.<br>Neeche PIN daal kar kaam chalao! 🐑</div>";
             });
-        });
-
-        // Fetch Data Logic
-        getBtn.addEventListener('click', () => {
-            const code = pinInput.value.trim();
-            if(!code) {
-                alert("Pehle code daalo ya QR scan karo!");
-                return;
-            }
-            
-            resultBox.innerText = "Database se connect ho rha hai... (Entered Code: " + code + ")";
-            resultBox.style.display = 'block';
-            
-            // TODO: Firebase database fetching code lines go here
         });
     </script>
 </body>

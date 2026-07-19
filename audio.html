@@ -186,7 +186,7 @@
             display: none;
         }
 
-        /* ✨ NEW: Neo-Brutalist Code Output Box Styles */
+        /* ✨ Neo-Brutalist Code Output Box Styles */
         .code-output-box {
             display: none; 
             background: #fff;
@@ -243,8 +243,8 @@
 
         <h1 class="brand-title">swapsheep / aud</h1>
         
-        <!-- Interactive Upload / Preview Box -->
-        <div class="upload-box" id="drop-zone" onclick="document.getElementById('file-input').click()">
+        <!-- Interactive Upload / Preview Box (Modified: Hata diya inline click handler) -->
+        <div class="upload-box" id="drop-zone">
             <div id="upload-prompt">
                 <!-- Vector SVG Audio Note Icon -->
                 <svg class="upload-icon-svg" viewBox="0 0 24 24">
@@ -269,13 +269,13 @@
             <input type="file" id="file-input" accept="audio/*">
         </div>
 
-        <!-- Action Trigger -->
-        <button class="btn-swap" onclick="processAudioSwap()">SWAP AUDIO</button>
+        <!-- Action Trigger (Modified: Added unique id and dropped inline onclick) -->
+        <button class="btn-swap" id="swap-audio-btn">SWAP AUDIO</button>
 
         <!-- Status Alert -->
         <div class="status-message" id="status-text"></div>
 
-        <!-- ✨ NEW: Code & QR Output Container (Hidden by default) -->
+        <!-- Code & QR Output Container -->
         <div id="code-output" class="code-output-box">
             <div>AUDIO CODE: <span id="pin-display" style="color: var(--accent-rust);">----</span></div>
             <img id="qr-display" class="generated-qr" src="" alt="Scan QR Code" width="140" height="140">
@@ -287,20 +287,44 @@
         </div>
     </div>
 
-    <script>
+    <!-- Firebase Integrated Module Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+        // Same Project Firebase Core Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyFPcQ6X0bTS97DhL-SEJ_2ebvvy1SozU",
+            authDomain: "swapsheep-61cfc.firebaseapp.com",
+            projectId: "swapsheep-61cfc",
+            storageBucket: "swapsheep-61cfc.firebasestorage.app",
+            messagingSenderId: "620397250043",
+            appId: "1:620397250043:web:26111357ada1c3958cf75e",
+            measurementId: "G-GF9N6MDCCN"
+        };
+
+        // Engines Init
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // Native DOM Binding
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
         const audioPreviewBox = document.getElementById('audio-preview-box');
         const audioNameDisplay = document.getElementById('audio-name-display');
         const uploadPrompt = document.getElementById('upload-prompt');
         const statusText = document.getElementById('status-text');
-
-        // ✨ New variables for QR output
+        const swapAudioBtn = document.getElementById('swap-audio-btn');
         const codeOutput = document.getElementById('code-output');
         const pinDisplay = document.getElementById('pin-display');
         const qrDisplay = document.getElementById('qr-display');
 
-        // Drag & Drop State styling
+        // Safe Click trigger logic
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Drag & Drop State styling hooks
         ['dragenter', 'dragover'].forEach(eventName => {
             dropZone.addEventListener(eventName, (e) => {
                 e.preventDefault();
@@ -315,7 +339,7 @@
             }, false);
         });
 
-        // Drop Action
+        // Drop Action Engine
         dropZone.addEventListener('drop', (e) => {
             const dt = e.dataTransfer;
             const files = dt.files;
@@ -325,7 +349,7 @@
             }
         });
 
-        // Manual File Selector Change
+        // Manual Selection Sync
         fileInput.addEventListener('change', function() {
             if (this.files && this.files[0]) {
                 handleAudioSelection(this.files[0]);
@@ -338,41 +362,60 @@
             uploadPrompt.style.display = 'none';
             dropZone.style.borderStyle = 'solid';
             statusText.style.display = 'none';
-
-            // ✨ Naya audio file set hote hi purana output container hide hoga
-            codeOutput.style.display = 'none';
+            codeOutput.style.display = 'none'; // Chhipao purana container naye selection par
         }
 
-        // ✨ Modified: Action Trigger with Code & QR Generator UI logic
-        function processAudioSwap() {
+        // Firebase Cloud Save Process
+        async function processAudioSwap() {
             if (!fileInput.files || fileInput.files.length === 0) {
                 statusText.textContent = "Bhai, pehle koi audio toh select karo! 🐑";
                 statusText.style.display = 'block';
                 codeOutput.style.display = 'none';
                 return;
             }
-            
-            statusText.textContent = "Uploading audio & generating code... 🐑💨";
-            statusText.style.display = 'block';
-            codeOutput.style.display = 'none'; // Clear previous results on click
 
-            // Simulating database latency
-            setTimeout(() => {
-                // 4-digit random number generation
-                const randomPIN = Math.floor(1000 + Math.random() * 9000);
+            const file = fileInput.files[0];
+            statusText.textContent = "Uploading audio file to cloud storage... 🐑💨";
+            statusText.style.display = 'block';
+            codeOutput.style.display = 'none';
+
+            // Generate unique document key (4-digit PIN)
+            const randomPIN = Math.floor(1000 + Math.random() * 9000).toString();
+
+            try {
+                // 1. Storage Reference generate karna split extension ke saath
+                const fileExtension = file.name.split('.').pop();
+                const storageRef = ref(storage, `audio/${randomPIN}.${fileExtension}`);
+
+                // 2. Perform File Blob Stream Upload
+                await uploadBytes(storageRef, file);
+
+                // 3. Fetch public download token URL 
+                const downloadURL = await getDownloadURL(storageRef);
+
+                // 4. Save metadata maps onto Firestore database
+                const docRef = doc(db, "swaps", randomPIN);
+                await setDoc(docRef, {
+                    type: 'audio',
+                    content: downloadURL,
+                    createdAt: serverTimestamp()
+                });
+
+                // Success State Metrics Display
                 pinDisplay.innerText = randomPIN;
-                
-                // Fetch QR code from API using the generated PIN
                 qrDisplay.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${randomPIN}`;
                 qrDisplay.style.display = 'block';
-                
-                // Show final outputs
                 codeOutput.style.display = 'block';
                 statusText.textContent = "Audio successfully uploaded! 🎉";
-                
-                // TODO: Backend/Firebase cloud storage integration lines go here
-            }, 1200);
+
+            } catch (error) {
+                console.error("Firebase Audio Integration Error: ", error);
+                statusText.textContent = "Upload breakdown! Storage security metrics or network check karein. ❌";
+            }
         }
+
+        // Intercept action button click stream
+        swapAudioBtn.addEventListener('click', processAudioSwap);
     </script>
 </body>
 </html>

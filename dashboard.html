@@ -135,6 +135,14 @@
             box-shadow: 1px 1px 0px var(--line-color);
         }
 
+        .status-message {
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-rust);
+            display: none;
+        }
+
         .secondary-link {
             display: inline-block;
             margin-bottom: 25px;
@@ -235,6 +243,9 @@
 
         <!-- Swap Button -->
         <button id="swap-btn" class="action-btn">SWAP TEXT</button>
+
+        <!-- Status Alert Message -->
+        <div class="status-message" id="status-text"></div>
         
         <!-- Link to Join Page -->
         <a href="join.html" class="secondary-link">Have a code? Receive/Join Swap</a>
@@ -255,25 +266,78 @@
 
     <img src="/assets/sheep.svg" alt="Peeking Sheep" class="bottom-mascot">
 
-    <script>
+    <!-- Firebase SDK Modules Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Tumhara exact Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyFPcQ6X0bTS97DhL-SEJ_2ebvvy1SozU",
+            authDomain: "swapsheep-61cfc.firebaseapp.com",
+            projectId: "swapsheep-61cfc",
+            storageBucket: "swapsheep-61cfc.firebasestorage.app",
+            messagingSenderId: "620397250043",
+            appId: "1:620397250043:web:26111357ada1c3958cf75e",
+            measurementId: "G-GF9N6MDCCN"
+        };
+
+        // Firebase & Firestore Initialize
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Elements Mapping
         const swapBtn = document.getElementById('swap-btn');
         const codeOutput = document.getElementById('code-output');
         const pinDisplay = document.getElementById('pin-display');
         const qrDisplay = document.getElementById('qr-display');
         const textBox = document.getElementById('text-box');
+        const statusText = document.getElementById('status-text');
 
-        swapBtn.addEventListener('click', () => {
-            if(!textBox.value.trim()) {
-                alert("Pehle kuch text likho bhai!");
+        // Async core text swap handling
+        swapBtn.addEventListener('click', async () => {
+            const textValue = textBox.value.trim();
+
+            if(!textValue) {
+                statusText.textContent = "Bhai, pehle kuch text toh likho! 🐑";
+                statusText.style.display = 'block';
+                codeOutput.style.display = 'none';
                 return;
             }
-            const randomPIN = Math.floor(1000 + Math.random() * 9000);
-            pinDisplay.innerText = randomPIN;
-            qrDisplay.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${randomPIN}`;
-            qrDisplay.style.display = 'block';
-            codeOutput.style.display = 'block';
-            
-            // TODO: Firebase save logic rules here
+
+            statusText.textContent = "Swapping your text... 🐑💨";
+            statusText.style.display = 'block';
+            codeOutput.style.display = 'none';
+
+            // Generate 4-digit numeric string
+            const randomPIN = Math.floor(1000 + Math.random() * 9000).toString();
+
+            try {
+                // Writing payload to Firestore with PIN as document ID
+                const docRef = doc(db, "swaps", randomPIN);
+                await setDoc(docRef, {
+                    type: 'text',
+                    content: textValue,
+                    createdAt: serverTimestamp()
+                });
+
+                // Displaying outcomes
+                pinDisplay.innerText = randomPIN;
+                qrDisplay.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${randomPIN}`;
+                qrDisplay.style.display = 'block';
+                codeOutput.style.display = 'block';
+                statusText.textContent = "Text successfully swapped! 🎉";
+
+            } catch (error) {
+                console.error("Firestore Save Error: ", error);
+                statusText.textContent = "Database communication error. Clear security rules or retry! ❌";
+            }
+        });
+
+        // Clear output context on fresh text modifications
+        textBox.addEventListener('input', () => {
+            codeOutput.style.display = 'none';
+            statusText.style.display = 'none';
         });
     </script>
 </body>
