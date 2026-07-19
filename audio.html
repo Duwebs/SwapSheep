@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -187,9 +186,31 @@
             display: none;
         }
 
+        /* ✨ NEW: Neo-Brutalist Code Output Box Styles */
+        .code-output-box {
+            display: none; 
+            background: #fff;
+            border: 1.5px solid var(--line-color);
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 3px 3px 0px var(--line-color);
+        }
+
+        .generated-qr {
+            display: none;
+            margin: 12px auto 0 auto;
+            border: 1.5px solid var(--line-color);
+            box-shadow: 2px 2px 0px var(--line-color);
+            padding: 5px;
+            background: #fff;
+        }
+
         .back-dashboard-link {
             display: inline-block;
-            margin-top: 25px;
+            margin-top: 15px;
             color: var(--text-main);
             text-decoration: underline;
             font-size: 0.9rem;
@@ -254,6 +275,12 @@
         <!-- Status Alert -->
         <div class="status-message" id="status-text"></div>
 
+        <!-- ✨ NEW: Code & QR Output Container (Hidden by default) -->
+        <div id="code-output" class="code-output-box">
+            <div>AUDIO CODE: <span id="pin-display" style="color: var(--accent-rust);">----</span></div>
+            <img id="qr-display" class="generated-qr" src="" alt="Scan QR Code" width="140" height="140">
+        </div>
+
         <!-- Bottom Back to Dashboard Link -->
         <div>
             <a href="dashboard.html" class="back-dashboard-link">← Back to Dashboard</a>
@@ -267,6 +294,11 @@
         const audioNameDisplay = document.getElementById('audio-name-display');
         const uploadPrompt = document.getElementById('upload-prompt');
         const statusText = document.getElementById('status-text');
+
+        // ✨ New variables for QR output
+        const codeOutput = document.getElementById('code-output');
+        const pinDisplay = document.getElementById('pin-display');
+        const qrDisplay = document.getElementById('qr-display');
 
         // Drag & Drop State styling
         ['dragenter', 'dragover'].forEach(eventName => {
@@ -306,27 +338,40 @@
             uploadPrompt.style.display = 'none';
             dropZone.style.borderStyle = 'solid';
             statusText.style.display = 'none';
+
+            // ✨ Naya audio file set hote hi purana output container hide hoga
+            codeOutput.style.display = 'none';
         }
 
-        // Action Trigger
+        // ✨ Modified: Action Trigger with Code & QR Generator UI logic
         function processAudioSwap() {
             if (!fileInput.files || fileInput.files.length === 0) {
                 statusText.textContent = "Bhai, pehle koi audio toh select karo! 🐑";
                 statusText.style.display = 'block';
+                codeOutput.style.display = 'none';
                 return;
             }
             
-            statusText.textContent = "Swapping your audio... 🐑💨";
+            statusText.textContent = "Uploading audio & generating code... 🐑💨";
             statusText.style.display = 'block';
+            codeOutput.style.display = 'none'; // Clear previous results on click
 
+            // Simulating database latency
             setTimeout(() => {
-                alert("Audio successfully swapped! 🎉");
-                fileInput.value = '';
-                audioPreviewBox.style.style.display = 'none';
-                uploadPrompt.style.display = 'block';
-                dropZone.style.borderStyle = 'dashed';
-                statusText.style.display = 'none';
-            }, 1500);
+                // 4-digit random number generation
+                const randomPIN = Math.floor(1000 + Math.random() * 9000);
+                pinDisplay.innerText = randomPIN;
+                
+                // Fetch QR code from API using the generated PIN
+                qrDisplay.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${randomPIN}`;
+                qrDisplay.style.display = 'block';
+                
+                // Show final outputs
+                codeOutput.style.display = 'block';
+                statusText.textContent = "Audio successfully uploaded! 🎉";
+                
+                // TODO: Backend/Firebase cloud storage integration lines go here
+            }, 1200);
         }
     </script>
 </body>
