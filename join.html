@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Swap - Swapsheep</title>
+    <!-- QR Scanner Library via CDN -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root {
+            --bg-color: #F5F2EB;
+            --text-main: #2A2A2A;
+            --accent-rust: #D35436;
+            --line-color: #1A1A1A;
+            --card-bg: rgba(255, 255, 255, 0.5);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 20px; 
+            position: relative;
+            overflow-x: hidden; 
+        }
+        
+        .app-container { width: 100%; max-width: 400px; text-align: center; z-index: 2; }
+
+        .brand-title { font-size: 2.2rem; font-weight: 300; letter-spacing: 3px; margin-bottom: 5px; }
+        .sub-title { font-size: 1rem; color: #666; margin-bottom: 20px; }
+
+        /* Camera Scanner Box */
+        #scanner-container {
+            width: 100%;
+            background: #fff;
+            border: 1.5px solid var(--line-color);
+            border-radius: 4px;
+            box-shadow: 3px 3px 0px var(--line-color);
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        #camera-preview {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* ✨ Modified: Receive Zone to stack input and button vertically */
+        .receive-zone {
+            display: flex;
+            flex-direction: column; /* Isse button niche aa jayega */
+            gap: 15px; /* Input aur Button ke beech ka gap */
+            margin-bottom: 20px;
+        }
+
+        .pin-input {
+            width: 100%; /* Poori width le lega */
+            padding: 14px;
+            background: var(--card-bg);
+            border: 1.5px solid var(--line-color);
+            border-radius: 4px;
+            font-weight: 700;
+            text-align: center;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            outline: none;
+            box-shadow: 3px 3px 0px var(--line-color);
+        }
+
+        .action-btn {
+            width: 100%; /* Button bhi ab full width ka hai */
+            padding: 14px;
+            background: var(--accent-rust);
+            color: white;
+            border: 1.5px solid var(--line-color);
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px var(--line-color);
+            transition: all 0.1s;
+        }
+
+        .action-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px var(--line-color);
+        }
+
+        /* Result Box */
+        .result-box {
+            display: none;
+            width: 100%;
+            height: 140px;
+            background: #fff;
+            border: 1.5px solid var(--line-color);
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 25px;
+            box-shadow: 3px 3px 0px var(--line-color);
+            text-align: left;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 25px;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: underline;
+        }
+
+        .bottom-mascot {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 120px;
+            z-index: 1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1 class="brand-title">swapsheep</h1>
+        <p class="sub-title">Align QR code or enter PIN below</p>
+
+        <!-- 1. Scanner Preview on Top -->
+        <div id="scanner-container">
+            <div id="camera-preview"></div>
+        </div>
+
+        <!-- 2. Input Section with Button Below -->
+        <div class="receive-zone">
+            <input type="text" id="pin-input" class="pin-input" placeholder="ENTER PIN" maxlength="6">
+            <button id="get-btn" class="action-btn">GET TEXT</button>
+        </div>
+
+        <!-- Result Content Box -->
+        <div id="result-box" class="result-box"></div>
+
+        <a href="dashboard.html" class="back-link">← Go Back to Send Text</a>
+    </div>
+
+    <!-- Bottom Mascot -->
+    <img src="/assets/sheep.svg" alt="Peeking Sheep" class="bottom-mascot">
+
+    <script>
+        const getBtn = document.getElementById('get-btn');
+        const pinInput = document.getElementById('pin-input');
+        const resultBox = document.getElementById('result-box');
+        let html5QrCode = null;
+
+        // Automatically start camera when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            html5QrCode = new Html5Qrcode("camera-preview");
+            
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 220, height: 220 } },
+                (decodedText) => {
+                    pinInput.value = decodedText;
+                    html5QrCode.stop().catch(err => console.log(err));
+                    getBtn.click(); // Auto click GET text box ke niche hone par bhi chalega
+                },
+                (err) => {}
+            ).catch((err) => {
+                console.error("Camera auto-start failed:", err);
+                document.getElementById('camera-preview').innerHTML = "<p style='color:#666; padding:40px 10px; font-size:0.9rem;'>Camera block hai bhai. Neeche PIN daal kar kaam chalao!</p>";
+            });
+        });
+
+        // Fetch Data Logic
+        getBtn.addEventListener('click', () => {
+            const code = pinInput.value.trim();
+            if(!code) {
+                alert("Pehle code daalo ya QR scan karo!");
+                return;
+            }
+            
+            resultBox.innerText = "Database se connect ho rha hai... (Entered Code: " + code + ")";
+            resultBox.style.display = 'block';
+            
+            // TODO: Firebase database fetching code lines go here
+        });
+    </script>
+</body>
+</html>

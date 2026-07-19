@@ -29,14 +29,14 @@
             align-items: center; 
             padding: 20px; 
             position: relative;
-            overflow-x: hidden; /* Taaki sheep ki wajah se horizontal scrollbar na aaye */
+            overflow-x: hidden; 
         }
         
         .app-container { 
             width: 100%; 
             max-width: 400px; 
             text-align: center; 
-            z-index: 2; /* Content sheep ke upar dikhega */
+            z-index: 2; 
         }
 
         /* --- Top Icons Styles --- */
@@ -45,36 +45,25 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            margin-bottom: 30px; /* Logo aur icons ke beech ka gap */
+            margin-bottom: 30px; 
             padding: 0 10px;
         }
 
         .top-icon-img {
-            width: 90px; /* Visual balance ke liye size thoda bada (15-20%) kiya hai */
+            width: 90px; 
             height: auto;
             object-fit: contain;
             cursor: pointer;
-            /* Smooth transitions aur halka sa bouncy effect animation ke liye */
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
 
-        /* --- New: Har icon ko alag natural paper-cut tilt diya hai --- */
-        .top-media-icons img:nth-child(1) {
-            transform: rotate(-3deg); /* Image icon left tilt */
-        }
-        
-        .top-media-icons img:nth-child(2) {
-            transform: rotate(2.5deg); /* Video icon right tilt */
-        }
-        
-        .top-media-icons img:nth-child(3) {
-            transform: rotate(-1.5deg); /* Audio icon halka left tilt */
-        }
+        .top-media-icons img:nth-child(1) { transform: rotate(-3deg); }
+        .top-media-icons img:nth-child(2) { transform: rotate(2.5deg); }
+        .top-media-icons img:nth-child(3) { transform: rotate(-1.5deg); }
 
-        /* --- New: Hover ya Click (Active) karne par ekdum seedha aur bada ho jaye --- */
         .top-media-icons img:hover,
         .top-media-icons img:active {
-            transform: rotate(0deg) scale(1.12); /* Seedha hokar halka sa pop-out hoga */
+            transform: rotate(0deg) scale(1.12); 
         }
         
         /* --- Logo Styles --- */
@@ -109,18 +98,71 @@
             margin-bottom: 20px; 
         }
         
-        /* Text/Code Box */
+        /* Text Box */
         .text-input-box {
             width: 100%; 
-            height: 120px; 
+            height: 140px; 
             background: var(--card-bg);
             border: 1.5px solid var(--line-color); 
             border-radius: 4px; 
             padding: 12px;
-            margin-bottom: 25px; 
+            margin-bottom: 20px; 
             box-shadow: 3px 3px 0px var(--line-color);
             resize: none;
             outline: none;
+            font-size: 1rem;
+        }
+
+        /* Buttons */
+        .action-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-rust);
+            color: white;
+            border: 1.5px solid var(--line-color);
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px var(--line-color);
+            transition: all 0.1s;
+            margin-bottom: 15px;
+        }
+
+        .action-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px var(--line-color);
+        }
+
+        .secondary-link {
+            display: inline-block;
+            margin-bottom: 25px;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .code-output-box {
+            display: none; 
+            background: #fff;
+            border: 1.5px solid var(--line-color);
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            box-shadow: 3px 3px 0px var(--line-color);
+        }
+
+        .generated-qr {
+            display: none;
+            margin: 12px auto 0 auto;
+            border: 1.5px solid var(--line-color);
+            box-shadow: 2px 2px 0px var(--line-color);
+            padding: 5px;
+            background: #fff;
         }
 
         /* Navigation Grid */
@@ -150,7 +192,6 @@
             transform: translateY(-2px); 
         }
 
-        /* --- Bottom Corner Sheep Styles (Bilkul safe hai!) --- */
         .bottom-mascot {
             position: fixed;
             bottom: 0;
@@ -165,14 +206,14 @@
 <body>
 
     <div class="app-container">
-        <!-- Uper waale teeno image, video aur audio icons yahan hain -->
+        <!-- Top Icons -->
         <div class="top-media-icons">
-            <img src="/assets/image.svg" alt="Image Icon" class="top-icon-img">
-            <img src="/assets/video.svg" alt="Video Icon" class="top-icon-img">
-            <img src="/assets/audio.svg" alt="Audio Icon" class="top-icon-img">
+            <a href="image.html"><img src="/assets/image.svg" alt="Image Icon" class="top-icon-img"></a>
+            <a href="video.html"><img src="/assets/video.svg" alt="Video Icon" class="top-icon-img"></a>
+            <a href="audio.html"><img src="/assets/audio.svg" alt="Audio Icon" class="top-icon-img"></a>
         </div>
 
-        <!-- 2. Top Rotating Logo -->
+        <!-- Rotating Logo -->
         <div class="logo-wrapper">
             <svg class="sheep-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                 <g class="rotating-loop">
@@ -187,13 +228,24 @@
             </svg>
         </div>
 
-        <!-- 3. Brand Title -->
         <h1 class="brand-title">swapsheep</h1>
         
-        <!-- 4. Text/Code Box -->
-        <textarea class="text-input-box" placeholder="Paste your code or text here..."></textarea>
+        <!-- Text Input -->
+        <textarea id="text-box" class="text-input-box" placeholder="Paste your text here to swap..."></textarea>
 
-        <!-- 5. Navigation Hub -->
+        <!-- Swap Button -->
+        <button id="swap-btn" class="action-btn">SWAP TEXT</button>
+        
+        <!-- Link to Join Page -->
+        <a href="join.html" class="secondary-link">Have a code? Receive/Join Swap</a>
+
+        <!-- Code & QR Output -->
+        <div id="code-output" class="code-output-box">
+            <div>YOUR CODE: <span id="pin-display" style="color: var(--accent-rust);">----</span></div>
+            <img id="qr-display" class="generated-qr" src="" alt="Scan QR Code" width="140" height="140">
+        </div>
+
+        <!-- Navigation Hub -->
         <div class="nav-grid">
             <a href="image.html" class="nav-card">IMAGE</a>
             <a href="video.html" class="nav-card">VIDEO</a>
@@ -201,8 +253,28 @@
         </div>
     </div>
 
-    <!-- Neeche kone me jhankti hui sheep (Bilkul touch nahi kiya ise) -->
     <img src="/assets/sheep.svg" alt="Peeking Sheep" class="bottom-mascot">
 
+    <script>
+        const swapBtn = document.getElementById('swap-btn');
+        const codeOutput = document.getElementById('code-output');
+        const pinDisplay = document.getElementById('pin-display');
+        const qrDisplay = document.getElementById('qr-display');
+        const textBox = document.getElementById('text-box');
+
+        swapBtn.addEventListener('click', () => {
+            if(!textBox.value.trim()) {
+                alert("Pehle kuch text likho bhai!");
+                return;
+            }
+            const randomPIN = Math.floor(1000 + Math.random() * 9000);
+            pinDisplay.innerText = randomPIN;
+            qrDisplay.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${randomPIN}`;
+            qrDisplay.style.display = 'block';
+            codeOutput.style.display = 'block';
+            
+            // TODO: Firebase save logic rules here
+        });
+    </script>
 </body>
 </html>
